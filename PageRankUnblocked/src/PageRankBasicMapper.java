@@ -19,17 +19,20 @@ public class PageRankBasicMapper extends MapReduceBase implements
 		OutputCollector<Text, Text> output, Reporter reporter) 
 		throws IOException {
 	
+//		String tempString = value.toString().replaceAll("\\s+", " ");
 		String tempString = value.toString();
-		
-		String node = tempString.substring(0, 6);
-		String[] fields = tempString.substring(7).split(",");
+		String[] KeyValue = tempString.split("\t");
+		String node = KeyValue[0];
+		String nodeValue = KeyValue[1];
+		String[] fields = nodeValue.split(",");
 		double pageRank = Double.valueOf(fields[0]);
 		
 		for(int i = 1; i< fields.length-1; i++) {
-			double PR = pageRank/Double.valueOf(fields[fields.length-1]);
-			output.collect(new Text(fields[i]), new Text(node+","+PR));
+			if(Integer.valueOf(fields[fields.length-1]) != 0){
+				Double PR = (double)pageRank/Double.valueOf(fields[fields.length-1]);
+				output.collect(new Text(fields[i]), new Text(PR.toString()));
+			}	
 		}
-		
-		output.collect(new Text(key.toString()), value);
+		output.collect(new Text(node), new Text(nodeValue));
 	}
 }
