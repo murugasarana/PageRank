@@ -21,7 +21,7 @@ public class BlockedPageRankReducer extends MapReduceBase implements
 org.apache.hadoop.mapred.Reducer<Text, Text, Text, Text> {
 	
 	private static final Double damping = 0.85;
-	private static final Double randomFactor = (1.0-damping)/685229.0;
+	private static final Double randomFactor = (1.0-damping)/685230.0;
 	
 	@Override
 	public void reduce(Text _key,
@@ -37,23 +37,17 @@ org.apache.hadoop.mapred.Reducer<Text, Text, Text, Text> {
 		
 		while(values.hasNext()) {
 			String tuple = values.next().toString();
-//			System.out.println("TUPLE: "+tuple);
 			String[] nodeFields = tuple.split(",");
 			if(nodeFields.length < 4) {
 				pageRank = Double.valueOf(nodeFields[2]);
 				if(pageRankMap.containsKey(nodeFields[1])) {
-//					System.out.println("Adding to "+pageRank+" + "+pageRankMap.get(nodeFields[1]));
 					try {
 						pageRank = pageRankMap.get(nodeFields[1]) + pageRank;
 					} catch(Exception e) {
 						System.out.println("ERROR");
 					}
 				}
-				else{
-//					System.out.println("Adding new value");
-				}
 				pageRankMap.put(nodeFields[1], pageRank);
-//				System.out.println(pageRankMap.get(nodeFields[1]));
 				inBlockNodes.add(nodeFields[0]);
 			} else {
 				selfTuples.put(nodeFields[0],tuple);
@@ -63,19 +57,17 @@ org.apache.hadoop.mapred.Reducer<Text, Text, Text, Text> {
 		Iterator<String> inBlockIter = inBlockNodes.iterator();
 		while(inBlockIter.hasNext()) {
 			String inBlockNode = inBlockIter.next();
-//			System.out.println("IN BLOCK NODE: "+inBlockNode);
 			String[] inBlockValues;
 			Double residual;	
-			Double pageRankUpdated = 1.0/685229.0;
+			Double pageRankUpdated = 1.0/685230.0;
 			if(pageRankMap.containsKey(inBlockNode)){
 			    pageRankUpdated = pageRankMap.get(inBlockNode) * damping + randomFactor;
-//			    System.out.println("PAGE RANK UPDATED: "+pageRankUpdated);
+
 			}
 		    if(selfTuples.containsKey(inBlockNode)) {	
 				inBlockValues = selfTuples.get(inBlockNode).split(",");
 			    residual = Math.abs(Double.valueOf(inBlockValues[1])-Double.valueOf(pageRankUpdated));
 			    residual = residual/Double.valueOf(pageRankUpdated);
-//			    System.out.println("Residual = "+Double.valueOf(inBlockValues[1])+" - "+pageRankUpdated+" = "+residual);
 				inBlockValues[1] = pageRankUpdated.toString();
 			} else {
 				inBlockValues = new String[4];

@@ -21,7 +21,7 @@ public class BlockedPageRankDriver {
 
 	public static void main(String[] args) {
 		Integer i = 0;
-		while (i < 5) {
+		while (true) {
 			JobClient client = new JobClient();
 			// Configurations for Job set in this variable
 			JobConf conf = new JobConf(BlockedPageRankDriver.class);
@@ -49,16 +49,20 @@ public class BlockedPageRankDriver {
 			}
 			FileOutputFormat.setOutputPath(conf,
 					new Path(args[1] + "_" + i.toString()));
-			i = i+1;
 			client.setConf(conf);
 			RunningJob job = null;
 			Counters c = null;
-			long counter;
+			Counter counter;
 			try {
 				job = JobClient.runJob(conf);
 				c = job.getCounters();
-				counter = c.getCounter(GlobalCounters.RESIDUAL)/1000000000;
-				System.out.println("residual: " + (double)counter/685229+"\n");
+				counter = c.findCounter(GlobalCounters.RESIDUAL);
+				Double residual = (double) (counter.getValue()/685230.0)/1000000000;
+				System.out.println("RESIDUAL: " + residual);
+				if(i != 0 && residual < 0.001){
+					break;
+				}
+				i = i+1;
 			} catch (Exception e) {
 				System.out.println("Error unexpected!");
 				e.printStackTrace();
